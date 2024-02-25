@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>離場畫面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .welcome-container {
+            margin: -30px; /* 修正這裡的錯誤 */
+            font-size: 40px;
+        }
+        .text-box-container {
+            display: flex;
+            justify-content: center;
+        }
+        .text-box {
+            padding: 10px;
+            margin: 20px;
+            font-size: 40px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+        .qr-code-container {
+            display: flex;
+            margin-top: 20px; /* 添加上方間距 */
+        }
+        .qr-code{
+            display: flex;
+            margin: 0 42px;
+        }
+        /* .qr-code-center {
+            display: flex;
+            margin: 0 80px 0 55px; /* 添加左右間距 */
+        /* }
+        .qr-code-left {
+            display: flex;
+            margin: 0 80px 0 30px; /* 添加左右間距 */
+        /* }
+        .qr-code-right {
+            display: flex;
+            margin: 0 130px 0 0; /* 添加左右間距 
+        } */
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <h2>您好！</h2>
+        <p>車號: UCCU123</p>
+        <p>進場時間: 2024-02-01 10:00:00</p>
+        <p>出場時間: 2024-02-01 18:00:00</p>
+        <p>金額:</p>
+        <div class="text-box-container">
+            <div class="text-box">綠界(信用卡,Applepay)</div>
+            <div class="text-box">LinePay</div>
+        </div>
+        <div class="qr-code-container">
+            <div id="qrcode1" class="qr-code"></div>
+            <div id="qrcode2" class="qr-code"></div>
+            <div id="qrcode3" class="qr-code"></div>
+        </div>
+    </div>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        // QR Code 1
+        var paymentUrl1 = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5";
+        var qrcode1 = new QRCode(document.getElementById("qrcode1"), {
+            text: paymentUrl1,
+            width: 128,
+            height: 128
+        });
+    </script>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        // QR Code 3
+        var paymentUrl3 = "https://p-stage.ecpay.com.tw/C633808";
+        var qrcode3 = new QRCode(document.getElementById("qrcode3"),{
+            text: paymentUrl3,
+            width: 128,
+            height: 128
+        });
+    </script>
+</body>
+</html>

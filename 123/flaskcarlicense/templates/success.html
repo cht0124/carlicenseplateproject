@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .welcome-container {
+            margin: -30px; /* 修正這裡的錯誤 */
+            font-size: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <h2>繳費成功！</h2>
+    </div>
+    <script>
+        // 倒數功能
+        var count = 5; // 設定倒數秒數
+        var countdownTimer = setInterval(function() {
+            count--;
+            if (count <= 0) {
+                clearInterval(countdownTimer);
+                window.location.href = "exit_top_new.html"; // 更改成你想要跳轉的頁面
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #2c3e50;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        .special-container {
+            text-align: center;
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            position: relative;
+            animation: scaleAndRotate 3s ease-in-out infinite alternate, changeColor 5s infinite alternate;
+            margin-bottom: 20px;
+            cursor: pointer; /* Add cursor pointer for clickable effect */
+        }
+
+        .camera-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px; /* Increase width */
+            height: 60px; /* Increase height */
+        }
+
+        @keyframes scaleAndRotate {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.2) rotate(360deg); }
+        }
+
+        @keyframes changeColor {
+            0% { background-color: #e74c3c; }
+            50% { background-color: #3498db; }
+            100% { background-color: #2ecc71; }
+        }
+
+        .loading-text {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+
+
+<div id="waitingDiv" class="special-container">
+    <div class="circle" onclick="redirectToSecondHTML()">
+        <img class="camera-icon" src="D:\數據分析軟體\車牌\456.png" alt="Camera Icon">
+    </div>
+    <div class="loading-text">待機中...</div>
+</div>
+
+<!--video tag -->
+<div id="videoDiv" style="display: none;">
+    <img id="live-image" src="" alt="Live Image"/>
+    <p id="mytext"></p>
+    <video id="video" width="640" height="480" hidden></video>
+    <!-- <button id="snap">Snap Photo</button> -->
+    <canvas id="canvas" width="640" height="480" hidden></canvas>
+    <!-- <h2>the image comes from  Server </h2> -->
+    <image id="detect_image"></image>
+</div>
+
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var waitingDiv = document.getElementById("waitingDiv");
+    var videoDiv = document.getElementById("videoDiv");
+    var waiting = true;
+
+    // Get access to the camera!
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Not adding { audio: true } since we only want video now
+        navigator.mediaDevices.getUserMedia({video: true}).then(function (stream) {
+            //video.src = window.URL.createObjectURL(stream);
+            video.srcObject = stream;
+            video.play();
+            waitingDiv.style.display = "block";
+            videoDiv.style.display = "none";
+        });
+    }
+
+    //websocket client
+    if ('WebSocket' in window) {
+        console.log('WebSocket is supported');
+    }
+    var socket = io();
+
+    // Elements for taking the snapshot
+    var canvas = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var video = document.getElementById('video');
+    var detect_image = document.getElementById("detect_image")
+
+    socket.on('capture_event', function (msg) {
+        console.log('got capture_event')
+        console.log(msg)
+        detect_image.src = 'data:image/png;base64,' + msg
+    });
+
+    // Trigger photo take
+    // document.getElementById("snap").addEventListener("click", function () {
+    //     context.drawImage(video, 0, 0, 640, 640);
+
+    //     var data = canvas.toDataURL();
+
+    //     console.log(data)
+    //     //remove prefix string "data:image/png;base64,"
+    //     var base64 = data.replace(/^data:image\/(png|jpg);base64,/, "");
+
+    //     console.log(base64)
+    //     socket.emit('capture_event', base64)
+
+
+    // });
+
+    // 函數來定期發送當前 frame
+    function sendFrame() {
+        console.log('send');
+        context.drawImage(video, 0, 0, 640, 480);
+        var data = canvas.toDataURL();
+        var base64 = data.replace(/^data:image\/(png|jpg);base64,/, "");
+        socket.emit('frame_event', base64);
+    }
+
+
+
+// 定期發送 frame
+setInterval(sendFrame, 4000); // 每100毫秒發送一次, 可以根據需要調整時間間隔
+
+    socket.on('update_image', function (data) {
+        document.getElementById('live-image').src = 'data:image/png;base64,' + data.image;
+        waitingDiv.style.display = "none";
+        videoDiv.style.display = "block";
+        setTimeout(function(){
+            waitingDiv.style.display = "block";
+            videoDiv.style.display = "none";       
+         }, 10000); // 等待10秒后再次设置为true
+    });
+    socket.on('update_text', function (data) {
+        document.getElementById('mytext').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,90 @@
+<html>
+<body>
+<!--video tag -->
+<img id="live-image" src="" alt="Live Image"/>
+
+<video id="video" width="640" height="480" ></video>
+<button id="snap">Snap Photo</button>
+<canvas id="canvas" width="640" height="480"></canvas>
+<h2>the image comes from  Server </h2>
+<image id="detect_image"></image>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script> -->
+
+
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+
+
+// Get access to the camera!
+if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    // Not adding `{ audio: true }` since we only want video now
+    navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+        //video.src = window.URL.createObjectURL(stream);
+        video.srcObject = stream;
+        video.play();
+    });
+}
+
+//websocket client
+if ('WebSocket' in window){
+	 console.log('WebSocket is supported');
+
+  }
+var socket = io();
+
+
+
+// Elements for taking the snapshot
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+var video = document.getElementById('video');
+var detect_image =document.getElementById("detect_image")
+
+socket.on('capture_event', function(msg){    
+    console.log('got capture_event')
+	console.log(msg)
+  	detect_image.src='data:image/png;base64,'+msg
+});
+
+
+
+// Trigger photo take
+document.getElementById("snap").addEventListener("click", function() {
+	context.drawImage(video, 0, 0, 1280, 1280);
+	
+	var data = canvas.toDataURL();
+	
+	console.log(data)
+	//remove prefix string "data:image/png;base64,"
+	var base64=data.replace(/^data:image\/(png|jpg);base64,/, "");
+	
+	console.log(base64)
+	socket.emit('capture_event',base64)
+	
+
+});
+
+
+// 函數來定期發送當前 frame
+function sendFrame() {
+	console.log('send');
+    context.drawImage(video, 0, 0, 640, 480);
+    var data = canvas.toDataURL();
+    var base64 = data.replace(/^data:image\/(png|jpg);base64,/, "");
+    socket.emit('frame_event', base64);
+}
+
+// 定期發送 frame
+setInterval(sendFrame, 4000); // 每100毫秒發送一次, 可以根據需要調整時間間隔
+
+socket.on('update_image', function(data) {
+    document.getElementById('live-image').src = 'data:image/png;base64,' + data.image;
+});
+</script>
+
+</body>
+</html>

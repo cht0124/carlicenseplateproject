@@ -1,0 +1,375 @@
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #2c3e50;
+            overflow: hidden;
+            color: #fff;
+        }
+        .welcome-container {
+            margin: -30px; /* 修正這裡的錯誤 */
+            font-size: 20px;
+            position: relative;
+        }
+        .text-box-container {
+            display: flex;
+            justify-content: center;
+        }
+        .text-box {
+            padding: 10px;
+            margin: 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #22b31df5;
+        }
+        .qr-code-container {
+            display: flex;
+            margin-top: 20px; /* 添加上方間距 */
+        }
+        .qr-code-greenpay{
+            display: flex;
+            margin: 0 100px 0 180px;
+        }
+        .qr-code-linepay {
+            display: flex;
+            margin: 0 40px 0 100px; /*添加左右間距*/
+        }
+        .special-container {
+            text-align: center;
+        }
+
+        .circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            position: inline;
+            animation: scaleAndRotate 3s ease-in-out infinite alternate, changeColor 5s infinite alternate;
+            margin-bottom: 20px;
+            cursor: pointer; /* Add cursor pointer for clickable effect */
+        }
+
+        .camera-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px; /* Increase width */
+            height: 30px; /* Increase height */
+        }
+
+        @keyframes scaleAndRotate {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.2) rotate(360deg); }
+        }
+
+        @keyframes changeColor {
+            0% { background-color: #e74c3c; }
+            50% { background-color: #3498db; }
+            100% { background-color: #2ecc71; }
+        }
+
+        .loading-text {
+            font-size: 1.5em;
+        }
+        .inline {
+            display:inline;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div id="waitingDiv" class="special-container">
+        <div class="circle" onclick="redirectToSecondHTML()">
+            <img class="camera-icon" src="D:\數據分析軟體\車牌\456.png" alt="Camera Icon">
+        </div>
+        <div class="loading-text">待機中...</div>
+    </div>
+
+    <!--video tag -->
+    <div id="videoDiv" style="display: none;">
+        <div class="welcome-container">
+        <img id="live-image" src="" alt="Live Image" width="200" height="200"/>
+        <img id="live-image2" src="" alt="Live Image"  width="200" height="200"/>
+    </div>
+        <!-- <p id="mytext"></p>
+        <p id="no_license_text"></p>
+        <p id="formatted_entry_time"></p>
+        <p id="formatted_exit_time"></p>
+        <p id="order_url"></p>
+        <p id="timegap"></p> -->
+        <!-- <p id="ecpay_url"></p>
+        <p id="linepay_url"></p> -->
+
+        <br>
+        <br>
+        <br>
+        <br>
+        <div class="welcome-container">
+            <!-- <h2>您好！</h2> -->
+            <div class="inline">
+                <a>車號: </a><a id="mytext"></a>
+            </div>
+            <div class="inline">
+                <a>進場時間: </a><a id="formatted_entry_time"></a>
+            </div>
+            <div class="inline">
+                <a>出場時間: </a><a id="formatted_exit_time"></a>
+            </div>
+            <div class="inline">
+                <a>金額: </a><a id="payment"></a>
+            </div>
+            <div class="text-box-container">
+                <div class="text-box">綠界</div>
+                <div class="text-box">LinePay</div>
+            </div>
+            <div class="qr-code-container">
+                <!-- <image id="qr_code_1"></image>
+                <image id="qr_code_2"></image> -->
+                <div id="qrcode1" class="qr-code-greenpay"></div>
+                <div id="qrcode2" class="qr-code-linepay"></div>
+            </div>
+        </div>
+
+        <br>
+        <br>
+        <br>
+        <div class="welcome-container">
+        <img id="ecpay-img" src="" alt="ECPay QR Code" width="128" height="128">
+        <img id="linepay-img" src="" alt="LinePay QR Code" width="128" height="128">
+    </div>
+
+        <video id="video" width="640" height="480" hidden></video>
+        <button id="snap" hidden>Snap Photo</button>
+        <canvas id="canvas" width="640" height="480" hidden></canvas>
+        <image id="detect_image"></image>
+    </div>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        // QR Code 1
+        //var paymentUrl1 = "http://127.0.0.1:5000/ecpay"; /*{greenpay_url}*/
+        var qrcode1 = new QRCode(document.getElementById("qrcode1"), {
+            text: paymentUrl1,
+            width: 128,
+            height: 128
+        });
+    </script>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        // QR Code 2
+        // var paymentUrl2 = ""; /*{linepay_url}*/
+        var qrcode3 = new QRCode(document.getElementById("qrcode2"),{
+            text: paymentUrl2,
+            width: 128,
+            height: 128
+        });
+    </script>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        var waitingDiv = document.getElementById("waitingDiv");
+        var videoDiv = document.getElementById("videoDiv");
+        var waiting = true;
+
+        // Get access to the camera!
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // Not adding { audio: true } since we only want video now
+            navigator.mediaDevices.getUserMedia({video: true}).then(function (stream) {
+                //video.src = window.URL.createObjectURL(stream);
+                video.srcObject = stream;
+                video.play();
+                waitingDiv.style.display = "block";
+                videoDiv.style.display = "none";
+            });
+        }
+
+        //websocket client
+        if ('WebSocket' in window) {
+            console.log('WebSocket is supported');
+        }
+        var socket = io();
+
+        // Elements for taking the snapshot
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var video = document.getElementById('video');
+        var detect_image = document.getElementById("detect_image")
+
+        socket.on('capture_event', function (msg) {
+            console.log('got capture_event')
+            console.log(msg)
+            detect_image.src = 'data:image/png;base64,' + msg
+        });
+
+        // Trigger photo take
+        document.getElementById("snap").addEventListener("click", function () {
+            context.drawImage(video, 0, 0, 640, 640);
+
+            var data = canvas.toDataURL();
+
+            console.log(data)
+            //remove prefix string "data:image/png;base64,"
+            var base64 = data.replace(/^data:image\/(png|jpg);base64,/, "");
+
+            console.log(base64)
+            socket.emit('capture_event', base64)
+
+
+        });
+
+        // 函數來定期發送當前 frame
+        function sendFrame() {
+            console.log('send');
+            context.drawImage(video, 0, 0, 640, 480);
+            var data = canvas.toDataURL();
+            var base64 = data.replace(/^data:image\/(png|jpg);base64,/, "");
+            socket.emit('out_frame_event', base64);
+        }
+
+
+
+    // 定期發送 frame
+    setInterval(sendFrame, 4000); // 每100毫秒發送一次, 可以根據需要調整時間間隔
+
+        socket.on('update_out_image', function (data) {
+            document.getElementById('live-image').src = 'data:image/png;base64,' + data.image;
+            waitingDiv.style.display = "none";
+            videoDiv.style.display = "block";
+            
+            // setTimeout(function(){
+            //     waitingDiv.style.display = "block";
+            //     videoDiv.style.display = "none";       
+            //  }, 10000); // 等待10秒后再次设置为true
+        });
+        socket.on('previous_image', function (data) {
+            document.getElementById('live-image2').src = 'data:image/png;base64,' + data.image;
+            waitingDiv.style.display = "none";
+            videoDiv.style.display = "block";
+            document.getElementById('live-image2').style.display = 'block' ;
+            document.getElementById('live-image2').style.display = "inline" ;
+
+            // setTimeout(function(){
+            //     waitingDiv.style.display = "block";
+            //     videoDiv.style.display = "none";       
+            //  }, 10000); // 等待10秒后再次设置为true
+        });
+        socket.on('update_out_text', function (data) {
+            document.getElementById('mytext').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        socket.on('no_license', function (data) {
+            document.getElementById('no_license_text').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+            waitingDiv.style.display = "none";
+            videoDiv.style.display = "block";
+            video.style.display = "none";
+            canvas.style.display = "none";
+            document.getElementById('live-image2').style.display = 'none' ;
+            document.getElementById('formatted_entry_time').style.display = '' ;
+            document.getElementById('formatted_exit_time').style.display = '' ;
+            document.getElementById('ecpay_url').style.display = '' ;
+            document.getElementById('linepay_url').style.display = '' ;
+            document.getElementById('timegap').style.display = '' ;
+            document.getElementById('payment').style.display = '' ;
+
+        });
+        socket.on('have_license', function (data) {
+            document.getElementById('no_license_text').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+            waitingDiv.style.display = "none";
+            videoDiv.style.display = "block";
+            video.style.display = "relative";
+            canvas.style.display = "relative";
+            document.getElementById('live-image2').style.display = "inline" ;
+            // document.getElementById('qr_code_ecpay').style.display = "inline" ;
+            // document.getElementById('qr_code_linepay').style.display = "inline" ;
+
+        });
+
+
+        socket.on('formatted_entry_time', function (data) {
+            document.getElementById('formatted_entry_time').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        socket.on('formatted_exit_time', function (data) {
+            document.getElementById('formatted_exit_time').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        socket.on('ecpay_url', function (data) {
+            document.getElementById('ecpay_url').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+            //paymentUrl1 = data.text;
+            //qrcode1.clear(); // Clear the previous QR code
+            //qrcode1.makeCode(paymentUrl1); // Generate new QR code
+        });
+        socket.on('linepay_url', function (data) {
+            document.getElementById('linepay_url').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+            //paymentUrl2 = data.text;
+            //qrcode2.clear(); // Clear the previous QR code
+            //qrcode2.makeCode(paymentUrl2); // Generate new QR code
+        }); 
+        socket.on('timegap', function (data) {
+            document.getElementById('timegap').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        socket.on('payment', function (data) {
+            document.getElementById('payment').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        socket.on('ecpay_url', function (data) {
+            document.getElementById('ecpay_url').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        socket.on('linepay_url', function (data) {
+            document.getElementById('linepay_url').textContent = data.text; // 改用 .textContent 屬性來更新元素的文本內容
+        });
+        // socket.on('qr_code_ecpay', function (data) {
+        //     document.getElementById('qr_code_ecpay').style.display = "inline" ; // 改用 .textContent 屬性來更新元素的文本內容
+        // });
+        // socket.on('qr_code_linepay', function (data) {
+        //     document.getElementById('qr_code_linepay').style.display = "inline" ; // 改用 .textContent 屬性來更新元素的文本內容
+        // });
+            // Socket.IO 事件處理程序，當從後端接收到 ecpay 的 QR code 圖像時調用
+        socket.on('qr_code_ecpay', function(data) {
+            updateQRCodeImage('ecpay-img', data.image);  // 更新 ecpay QR code 圖像
+        });
+
+        // Socket.IO 事件處理程序，當從後端接收到 linepay 的 QR code 圖像時調用
+        socket.on('qr_code_linepay', function(data) {
+            updateQRCodeImage('linepay-img', data.image);  // 更新 linepay QR code 圖像
+        });
+
+        // 更新圖像元素的函數
+        function updateQRCodeImage(imgId, imageData) {
+            var imgElement = document.getElementById(imgId);  // 根據圖像元素的 ID 獲取元素
+            imgElement.src = "data:image/png;base64," + imageData;  // 使用圖像數據更新圖像元素的 src 屬性值
+        }
+
+
+    </script>
+
+    <!-- <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        // QR Code 1
+        //var paymentUrl1 = "http://127.0.0.1:5000/ecpay"; /*{greenpay_url}*/
+        var qrcode1 = new QRCode(document.getElementById("qrcode1"), {
+            text: paymentUrl1,
+            width: 128,
+            height: 128
+        });
+    </script>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script>
+        // QR Code 2
+        // var paymentUrl2 = ""; /*{linepay_url}*/
+        var qrcode3 = new QRCode(document.getElementById("qrcode2"),{
+            text: paymentUrl2,
+            width: 128,
+            height: 128
+        });
+    </script> -->
+
+</body>
+</html>
